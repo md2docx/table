@@ -1,97 +1,133 @@
-import { IPlugin } from "@m2d/core";
-import { InlineDocxNodes } from "@m2d/core/utils";
-import type { Paragraph, Table } from "docx";
+import {
+  BorderStyle,
+  ShadingType,
+  WidthType,
+  AlignmentType,
+  type ITableCellOptions,
+  type ITableOptions,
+  type ITableRowOptions,
+  VerticalAlign,
+  convertMillimetersToTwip,
+} from "docx";
+import { TableRow as MdTableRow, IPlugin, Optional } from "@m2d/core";
 
-interface ITablePluginOptions {
+export type RowProps = Omit<ITableRowOptions, "children">;
+export type TableProps = Omit<ITableOptions, "rows">;
+export type CellProps = Omit<ITableCellOptions, "children">;
+
+export interface ITableAlignments {
+  defaultVerticalAlign?: (typeof VerticalAlign)[keyof typeof VerticalAlign];
+  defaultHorizontalAlign?: (typeof AlignmentType)[keyof typeof AlignmentType];
   /**
-   * A mapping of table shortcodes to their corresponding Unicode characters.
-   * This allows for easy customization of the table representation.
+   * Use MDAST data for horizontal aligning columns
+   * @default true
    */
-  tables?: Record<string, string>;
+  preferMdData?: boolean;
 }
 
+interface IDefaultTablePluginProps {
+  tableProps: TableProps;
+  rowProps: RowProps;
+  cellProps: CellProps;
+  firstRowProps: RowProps;
+  firstRowCellProps: CellProps;
+  alignments: ITableAlignments;
+}
+
+type ITablePluginProps = Optional<IDefaultTablePluginProps>;
+
+const border = { style: BorderStyle.SINGLE, color: "auto", size: 1 };
+
 /**
- * Table plugin for @m2d/core.
- * This plugin provides support for custom table transformation within Markdown content
- * during conversion to DOCX format.
+ * default table options
  */
-export const tablePlugin: (options?: ITablePluginOptions) => IPlugin = options => {
-  // merge options with the default options if needed
+export const defaultTableOptions: IDefaultTablePluginProps = {
+  tableProps: {
+    width: { size: 100, type: WidthType.PERCENTAGE },
+    margins: {
+      top: convertMillimetersToTwip(2),
+      right: convertMillimetersToTwip(4),
+      bottom: convertMillimetersToTwip(2),
+      left: convertMillimetersToTwip(4),
+    },
+    borders: {
+      top: border,
+      right: border,
+      bottom: border,
+      left: border,
+      insideHorizontal: border,
+      insideVertical: border,
+    },
+  },
+  rowProps: {},
+  cellProps: {},
+  firstRowProps: { tableHeader: true },
+  firstRowCellProps: { shading: { type: ShadingType.SOLID, fill: "b79c2f" } },
+  alignments: {
+    defaultVerticalAlign: VerticalAlign.CENTER,
+    defaultHorizontalAlign: AlignmentType.CENTER,
+    preferMdData: true,
+  },
+};
+
+/**
+ * Plugin to convert Markdown tables (MDAST) to DOCX with support for rich formatting and seamless integration into mdast2docx.
+ */
+export const tablePlugin: (options?: ITablePluginProps) => IPlugin = options => {
   return {
-    /**
-     * Handles inline-level MDAST nodes (e.g., text, strong, emphasis).
-     *
-     * @param docx - DOCX context (factory methods, styles, etc.)
-     * @param node - MDAST inline node to be processed
-     * @param runProps - Formatting properties like bold, italics, etc.
-     * @param definitions - Reference definitions (e.g., for links)
-     * @param footnoteDefinitions - Footnote mappings
-     * @param inlineChildrenProcessor - Helper function to process child inline nodes
-     * @returns Array of InlineDocxNodes representing the DOCX output
-     */
-    inline: async (
-      docx,
-      node,
-      runProps,
-      definitions,
-      footnoteDefinitions,
-      inlineChildrenProcessor,
-    ) => {
-      const docxNodes: InlineDocxNodes[] = [];
+    block: async (docx, node, _paraProps, _blockChildrenProcessor, inlineChildrenProcessor) => {
+      if (node.type !== "table") return [];
 
-      if (node.type === "") {
-        /**
-         * TODO: Add logic to handle specific inline node types (e.g., table).
-         * This block should convert the node into one or more InlineDocxNodes.
-         */
-        node.type = "";
-      }
+      const { Table, TableRow, TableCell, Paragraph } = docx;
 
-      return docxNodes;
-    },
+      const { tableProps, firstRowProps, firstRowCellProps, rowProps, cellProps, alignments } = {
+        ...defaultTableOptions,
+        ...options,
+      };
 
-    /**
-     * Handles block-level MDAST nodes (e.g., paragraphs, headings, lists).
-     *
-     * @param docx - DOCX context
-     * @param node - MDAST block node to be processed
-     * @param paraProps - Paragraph formatting properties
-     * @param blockChildrenProcessor - Processes child block nodes recursively
-     * @param inlineChildrenProcessor - Processes child inline nodes inside block nodes
-     * @returns Array of Paragraph or Table objects representing DOCX content
-     */
-    block: async (docx, node, paraProps, blockChildrenProcessor, inlineChildrenProcessor) => {
-      const docxNodes: (Paragraph | Table)[] = [];
+      const align = (node.align as (string | null)[] | null)?.map(a => {
+        switch (a) {
+          case "left":
+            return docx.AlignmentType.LEFT;
+          case "right":
+            return docx.AlignmentType.RIGHT;
+          case "center":
+            return docx.AlignmentType.CENTER;
+          default:
+            return undefined;
+        }
+      });
 
-      if (node.type === "") {
-        /**
-         * TODO: Add logic to handle specific block node types.
-         * This block should convert the node into one or more Paragraph/Table objects.
-         */
-        node.type = "";
-      }
+      /**
+       * Create table row
+       */
+      const createRow = async (row: MdTableRow, rowIndex: number) =>
+        new TableRow({
+          ...rowProps,
+          ...(rowIndex === 0 ? firstRowProps : {}),
+          children: await Promise.all(
+            row.children.map(async (cell, cellIndex) => {
+              return new TableCell({
+                verticalAlign: alignments.defaultVerticalAlign,
+                ...cellProps,
+                ...(rowIndex === 0 ? firstRowCellProps : {}),
+                children: [
+                  new Paragraph({
+                    children: await inlineChildrenProcessor(cell),
+                    alignment: alignments.preferMdData
+                      ? align?.[cellIndex]
+                      : alignments.defaultHorizontalAlign,
+                  }),
+                ],
+              });
+            }),
+          ),
+        });
 
-      return docxNodes;
-    },
-
-    /**
-     * Optional: Modifies the DOCX document metadata or style before rendering.
-     *
-     * @param props - Root-level properties such as title, styles, metadata, etc.
-     */
-    root: props => {
-      // Example: Override the document title
-      props.title = "My custom title";
-    },
-
-    /**
-     * Optional: Runs before conversion starts, allowing transformation or filtering
-     * of the MDAST (Markdown Abstract Syntax Tree).
-     *
-     * @param tree - The full MDAST tree before processing
-     */
-    preprocess: tree => {
-      // TODO: Modify or traverse the MDAST tree if needed (e.g., convert table syntax)
+      const rows = await Promise.all(node.children.map(createRow));
+      // @ts-expect-error - Setting type to empty string to avoid re-processing the node.
+      node.type = "";
+      return [new Table({ ...tableProps, rows })];
     },
   };
 };

@@ -1,71 +1,129 @@
-# @m2d/table
+# `@m2d/table` <img src="https://raw.githubusercontent.com/mayank1513/mayank1513/main/popper.png" height="40"/>
 
-[![test](https://github.com/md2docx/table/actions/workflows/test.yml/badge.svg)](https://github.com/md2docx/table/actions/workflows/test.yml) [![Maintainability](https://api.codeclimate.com/v1/badges/aa896ec14c570f3bb274/maintainability)](https://codeclimate.com/github/md2docx/table/maintainability) [![codecov](https://codecov.io/gh/md2docx/table/graph/badge.svg)](https://codecov.io/gh/md2docx/table) [![Version](https://img.shields.io/npm/v/@m2d/table.svg?colorB=green)](https://www.npmjs.com/package/@m2d/table) [![Downloads](https://img.jsdelivr.com/img.shields.io/npm/d18m/@m2d/table.svg)](https://www.npmjs.com/package/@m2d/table) ![npm bundle size](https://img.shields.io/bundlephobia/minzip/@m2d/table)
+[![test](https://github.com/md2docx/table/actions/workflows/test.yml/badge.svg)](https://github.com/md2docx/table/actions/workflows/test.yml) [![codecov](https://codecov.io/gh/md2docx/table/graph/badge.svg)](https://codecov.io/gh/md2docx/table) [![Version](https://img.shields.io/npm/v/@m2d/table?color=green)](https://www.npmjs.com/package/@m2d/table) ![Downloads](https://img.shields.io/npm/d18m/@m2d/table) ![Bundle Size](https://img.shields.io/bundlephobia/minzip/@m2d/table)
 
-> Emoji shortcode support for `mdast2docx`
-
-This plugin adds support for emoji shortcodes (e.g., `:smile:`, `:rocket:`) in your Markdown-to-DOCX conversion pipeline. It replaces recognized emoji shortcodes with their corresponding Unicode characters during the MDAST transformation.
-
----
-
-## ✨ Features
-
-- Converts emoji shortcodes to Unicode emojis (e.g., `:tada:` → 🎉)
-- Compatible with [`@m2d/core`](https://www.npmjs.com/package/@m2d/core)
-- Works seamlessly within the `mdast2docx` plugin ecosystem
-- Easy to integrate and lightweight
+> A plugin that converts Markdown tables into rich, styled Word tables with full alignment, border, and header support.
 
 ---
 
 ## 📦 Installation
 
 ```bash
-pnpm install @m2d/table
+npm install @m2d/table
 ```
 
-**_or_**
+```bash
+pnpm add @m2d/table
+```
 
 ```bash
 yarn add @m2d/table
 ```
 
-**_or_**
+---
 
-```bash
-npm add @m2d/table
+## 🚀 Overview
+
+The `@m2d/table` plugin for [`mdast2docx`](https://github.com/mayankchaudhari/mdast2docx) renders Markdown tables into Word-compatible tables with customizable layout, alignment, and cell styling using the `docx` library.
+
+> Automatically handles header rows, borders, shading, cell alignments, and padding — all configurable.
+
+---
+
+## ✨ Features
+
+- Transforms Markdown tables into `docx.Table` elements
+- Auto-detects column alignment from MDAST (`left`, `center`, `right`)
+- Customizable:
+  - Table width and border styles
+  - Cell padding and shading
+  - Header row formatting
+  - Horizontal and vertical alignment
+- Graceful fallback to defaults if MDAST alignment is missing
+
+---
+
+## 🛠️ Usage
+
+```ts
+import { toDocx } from "@m2d/core";
+import { tablePlugin } from "@m2d/table";
+
+const plugins = [tablePlugin()];
+
+const buffer = await toDocx(mdastTree, {
+  plugins,
+});
 ```
 
 ---
 
-## 🧠 How It Works
+## ⚙️ Options
 
-This plugin scans all text nodes for emoji shortcodes (e.g., `:fire:`, `:sparkles:`) and replaces them with matching Unicode emojis using a predefined emoji JSON mapping.
+The `tablePlugin` accepts an optional configuration object:
 
----
-
-## 🔍 Emoji Support
-
-It uses the [GitHub-style emoji shortcodes](https://github.com/ikatyang/emoji-cheat-sheet) and more — if a shortcode is not recognized, it will remain unchanged.
-
----
-
-## 🛠️ Development
-
-```bash
-# Clone and install dependencies
-git clone https://github.com/md2docx/emoji-plugin
-cd emoji-plugin
-npm install
-
-# Build / Test / Dev
-npm run build
+```ts
+tablePlugin({
+  tableProps: { ... },
+  rowProps: { ... },
+  cellProps: { ... },
+  firstRowProps: { ... },
+  firstRowCellProps: { ... },
+  alignments: {
+    defaultHorizontalAlign: AlignmentType.CENTER,
+    defaultVerticalAlign: VerticalAlign.CENTER,
+    preferMdData: true,
+  },
+});
 ```
 
+All options override the following sensible defaults:
+
+### Default Table Style
+
+| Property             | Default Value                          |
+| -------------------- | -------------------------------------- |
+| Table Width          | `100%` (percentage)                    |
+| Border Style         | `SINGLE`, size `1`                     |
+| Cell Padding         | 2–4mm margins (top/bottom/left/right)  |
+| Header Row           | Bold with shaded background `#b79c2f`  |
+| Vertical Alignment   | `CENTER`                               |
+| Horizontal Alignment | Based on Markdown or `CENTER` fallback |
+
 ---
 
-## 📄 License
+## 🧪 Example
 
-Licensed under the **MPL-2.0** License.
+### Markdown Input
+
+```md
+| Name  | Age |      City |
+| :---: | :-: | --------: |
+| Alice | 24  |  New York |
+|  Bob  | 30  | San Diego |
+```
+
+### Output DOCX
+
+- The first row is treated as a **header**, with custom shading.
+- Column alignment is preserved: center, center, right.
+
+---
+
+## 🔍 Internals
+
+- Leverages `docx.Table`, `docx.TableRow`, `docx.TableCell`, and `docx.Paragraph`
+- Dynamically maps Markdown alignment via `MDAST.align[]`
+- Uses `@m2d/core`’s block plugin API
+- Prevents re-processing of transformed nodes by setting `node.type = ""`
+
+---
+
+## ⚠️ Limitations
+
+- Does not support row/column spans
+- MDAST source must conform to [GFM tables](https://github.github.com/gfm/#tables-extension-)
+- Table styling is fixed to plugin options; no per-cell customization via Markdown yet
 
 ---
 
@@ -73,8 +131,14 @@ Licensed under the **MPL-2.0** License.
 
 If you find this useful:
 
-- ⭐ Star [mdast2docx](https://github.com/md2docx/mdast2docx) on GitHub
+- ⭐ Star [mdast2docx](https://github.com/tiny-md/mdast2docx) on GitHub
 - ❤️ Consider [sponsoring](https://github.com/sponsors/mayank1513)
+
+---
+
+## 🧾 License
+
+MIT © [Mayank Chaudhari](https://github.com/mayankchaudhari)
 
 ---
 
