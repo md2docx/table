@@ -6,8 +6,8 @@ import {
   type ITableCellOptions,
   type ITableOptions,
   type ITableRowOptions,
-  VerticalAlign,
   convertMillimetersToTwip,
+  VerticalAlignTable,
 } from "docx";
 import { TableRow as MdTableRow, IPlugin, Optional } from "@m2d/core";
 
@@ -16,7 +16,7 @@ export type TableProps = Omit<ITableOptions, "rows">;
 export type CellProps = Omit<ITableCellOptions, "children">;
 
 export interface ITableAlignments {
-  defaultVerticalAlign?: (typeof VerticalAlign)[keyof typeof VerticalAlign];
+  defaultVerticalAlign?: (typeof VerticalAlignTable)[keyof typeof VerticalAlignTable];
   defaultHorizontalAlign?: (typeof AlignmentType)[keyof typeof AlignmentType];
   /**
    * Use MDAST data for horizontal aligning columns
@@ -64,7 +64,7 @@ export const defaultTableOptions: IDefaultTablePluginProps = {
   firstRowProps: { tableHeader: true },
   firstRowCellProps: { shading: { type: ShadingType.SOLID, fill: "b79c2f" } },
   alignments: {
-    defaultVerticalAlign: VerticalAlign.CENTER,
+    defaultVerticalAlign: VerticalAlignTable.CENTER,
     defaultHorizontalAlign: AlignmentType.CENTER,
     preferMdData: true,
   },
