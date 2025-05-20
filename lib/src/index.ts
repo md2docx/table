@@ -6,7 +6,7 @@ import {
   type ITableCellOptions,
   type ITableOptions,
   type ITableRowOptions,
-  VerticalAlign,
+  VerticalAlignTable,
   convertMillimetersToTwip,
 } from "docx";
 import { TableRow as MdTableRow, IPlugin, Optional } from "@m2d/core";
@@ -16,7 +16,7 @@ export type TableProps = Omit<ITableOptions, "rows">;
 export type CellProps = Omit<ITableCellOptions, "children">;
 
 export interface ITableAlignments {
-  defaultVerticalAlign?: (typeof VerticalAlign)[keyof typeof VerticalAlign];
+  defaultVerticalAlign?: (typeof VerticalAlignTable)[keyof typeof VerticalAlignTable];
   defaultHorizontalAlign?: (typeof AlignmentType)[keyof typeof AlignmentType];
   /**
    * Use MDAST data for horizontal aligning columns
@@ -64,7 +64,7 @@ export const defaultTableOptions: IDefaultTablePluginProps = {
   firstRowProps: { tableHeader: true },
   firstRowCellProps: { shading: { type: ShadingType.SOLID, fill: "b79c2f" } },
   alignments: {
-    defaultVerticalAlign: VerticalAlign.CENTER,
+    defaultVerticalAlign: VerticalAlignTable.CENTER,
     defaultHorizontalAlign: AlignmentType.CENTER,
     preferMdData: true,
   },
@@ -75,7 +75,7 @@ export const defaultTableOptions: IDefaultTablePluginProps = {
  */
 export const tablePlugin: (options?: ITablePluginProps) => IPlugin = options => {
   return {
-    block: async (docx, node, _paraProps, _blockChildrenProcessor, inlineChildrenProcessor) => {
+    block: (docx, node, _paraProps, _blockChildrenProcessor, inlineChildrenProcessor) => {
       if (node.type !== "table") return [];
 
       const { Table, TableRow, TableCell, Paragraph } = docx;
@@ -101,30 +101,28 @@ export const tablePlugin: (options?: ITablePluginProps) => IPlugin = options => 
       /**
        * Create table row
        */
-      const createRow = async (row: MdTableRow, rowIndex: number) =>
+      const createRow = (row: MdTableRow, rowIndex: number) =>
         new TableRow({
           ...rowProps,
           ...(rowIndex === 0 ? firstRowProps : {}),
-          children: await Promise.all(
-            row.children.map(async (cell, cellIndex) => {
-              return new TableCell({
-                verticalAlign: alignments.defaultVerticalAlign,
-                ...cellProps,
-                ...(rowIndex === 0 ? firstRowCellProps : {}),
-                children: [
-                  new Paragraph({
-                    children: await inlineChildrenProcessor(cell),
-                    alignment: alignments.preferMdData
-                      ? align?.[cellIndex]
-                      : alignments.defaultHorizontalAlign,
-                  }),
-                ],
-              });
-            }),
-          ),
+          children: row.children.map((cell, cellIndex) => {
+            return new TableCell({
+              verticalAlign: alignments.defaultVerticalAlign,
+              ...cellProps,
+              ...(rowIndex === 0 ? firstRowCellProps : {}),
+              children: [
+                new Paragraph({
+                  children: inlineChildrenProcessor(cell),
+                  alignment: alignments.preferMdData
+                    ? align?.[cellIndex]
+                    : alignments.defaultHorizontalAlign,
+                }),
+              ],
+            });
+          }),
         });
 
-      const rows = await Promise.all(node.children.map(createRow));
+      const rows = node.children.map(createRow);
       // @ts-expect-error - Setting type to empty string to avoid re-processing the node.
       node.type = "";
       return [new Table({ ...tableProps, rows })];
