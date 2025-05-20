@@ -1,5 +1,11 @@
 # @m2d/table
 
+## 0.0.5
+
+### Patch Changes
+
+- 1d2470c: Update core package to v1
+
 ## 0.0.4
 
 ### Patch Changes
