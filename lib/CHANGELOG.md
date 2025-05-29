@@ -1,5 +1,11 @@
 # @m2d/table
 
+## 0.0.6
+
+### Patch Changes
+
+- 851747f: chore: update core package
+
 ## 0.0.5
 
 ### Patch Changes
