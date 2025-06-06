@@ -130,7 +130,6 @@ export const tablePlugin: (options?: ITablePluginProps) => IPlugin = options => 
               tmp.length = 0;
             }
             /* v8 ignore stop */
-            // @ts-expect-error - WIP
             children.push(node);
           } else {
             tmp.push(node as PhrasingContent);
