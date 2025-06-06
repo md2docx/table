@@ -9,7 +9,14 @@ import {
   VerticalAlignTable,
   convertMillimetersToTwip,
 } from "docx";
-import { TableRow as MdTableRow, IPlugin, Optional } from "@m2d/core";
+import {
+  TableRow as MdTableRow,
+  IPlugin,
+  Optional,
+  RootContent,
+  PhrasingContent,
+  EmptyNode,
+} from "@m2d/core";
 
 export type RowProps = Omit<ITableRowOptions, "children">;
 export type TableProps = Omit<ITableOptions, "rows">;
@@ -70,15 +77,26 @@ export const defaultTableOptions: IDefaultTablePluginProps = {
   },
 };
 
+const blockNodeTypesThatCanComeInCell = [
+  "paragraph",
+  "heading",
+  "code",
+  "list",
+  "blockquote",
+  "thematicBreak",
+  "fragment",
+  "table",
+];
+
 /**
  * Plugin to convert Markdown tables (MDAST) to DOCX with support for rich formatting and seamless integration into mdast2docx.
  */
 export const tablePlugin: (options?: ITablePluginProps) => IPlugin = options => {
   return {
-    block: (docx, node, _paraProps, _blockChildrenProcessor, inlineChildrenProcessor) => {
+    block: (docx, node, _paraProps, blockChildrenProcessor) => {
       if (node.type !== "table") return [];
 
-      const { Table, TableRow, TableCell, Paragraph } = docx;
+      const { Table, TableRow, TableCell } = docx;
 
       const { tableProps, firstRowProps, firstRowCellProps, rowProps, cellProps, alignments } = {
         ...defaultTableOptions,
@@ -98,6 +116,34 @@ export const tablePlugin: (options?: ITablePluginProps) => IPlugin = options => 
         }
       });
 
+      const wrapInBlockNodeIfNeeded = (cell: { children: RootContent[] }) => {
+        const children: RootContent[] = [];
+        const tmp: PhrasingContent[] = [];
+        for (node of cell.children) {
+          if (blockNodeTypesThatCanComeInCell.includes(node.type)) {
+            if (tmp.length > 0) {
+              /* v8 ignore start - we will never reach here as html table cell is wrapped in fragment and markdown table can not contain block elements. Just want to put more thought before removing this */
+              children.push({
+                type: "paragraph",
+                children: [...tmp],
+              });
+              tmp.length = 0;
+            }
+            /* v8 ignore stop */
+            // @ts-expect-error - WIP
+            children.push(node);
+          } else {
+            tmp.push(node as PhrasingContent);
+          }
+        }
+        if (tmp.length > 0) {
+          children.push({
+            type: "paragraph",
+            children: tmp,
+          });
+        }
+        cell.children = children;
+      };
       /**
        * Create table row
        */
@@ -106,23 +152,22 @@ export const tablePlugin: (options?: ITablePluginProps) => IPlugin = options => 
           ...rowProps,
           ...(rowIndex === 0 ? firstRowProps : {}),
           children: row.children.map((cell, cellIndex) => {
+            wrapInBlockNodeIfNeeded(cell);
             return new TableCell({
               verticalAlign: alignments.defaultVerticalAlign,
               ...cellProps,
               ...(rowIndex === 0 ? firstRowCellProps : {}),
-              children: [
-                new Paragraph({
-                  children: inlineChildrenProcessor(cell),
-                  alignment: alignments.preferMdData
-                    ? align?.[cellIndex]
-                    : alignments.defaultHorizontalAlign,
-                }),
-              ],
+              children: blockChildrenProcessor(cell, {
+                alignment: alignments.preferMdData
+                  ? align?.[cellIndex]
+                  : alignments.defaultHorizontalAlign,
+              }),
             });
           }),
         });
 
       const rows = node.children.map(createRow);
+      (node as unknown as EmptyNode)._type = node.type;
       // @ts-expect-error - Setting type to empty string to avoid re-processing the node.
       node.type = "";
       return [new Table({ ...tableProps, rows })];
