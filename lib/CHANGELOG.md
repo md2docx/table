@@ -1,5 +1,11 @@
 # @m2d/table
 
+## 0.1.1
+
+### Patch Changes
+
+- 9232aef: Update types
+
 ## 0.1.0
 
 ### Minor Changes
