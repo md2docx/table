@@ -1,5 +1,11 @@
 # @m2d/table
 
+## 0.1.0
+
+### Minor Changes
+
+- 5f0f362: Support block elements inside table cell, e.g., table inside table
+
 ## 0.0.6
 
 ### Patch Changes
