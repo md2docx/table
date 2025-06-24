@@ -17,6 +17,7 @@ import {
   PhrasingContent,
   EmptyNode,
 } from "@m2d/core";
+import { mergeOptions } from "@m2d/core/utils";
 
 export type RowProps = Omit<ITableRowOptions, "children">;
 export type TableProps = Omit<ITableOptions, "rows">;
@@ -37,7 +38,7 @@ interface IDefaultTablePluginProps {
   rowProps: RowProps;
   cellProps: CellProps;
   firstRowProps: RowProps;
-  firstRowCellProps: CellProps;
+  firstRowCellProps: CellProps & {alignment?: (typeof AlignmentType)[keyof typeof AlignmentType]};
   alignments: ITableAlignments;
 }
 
@@ -67,9 +68,9 @@ export const defaultTableOptions: IDefaultTablePluginProps = {
     },
   },
   rowProps: {},
-  cellProps: {},
+  cellProps: {width: {size: 100}},
   firstRowProps: { tableHeader: true },
-  firstRowCellProps: { shading: { type: ShadingType.SOLID, fill: "b79c2f" } },
+  firstRowCellProps: { shading: { type: ShadingType.SOLID, fill: "b79c2f" }, alignment: AlignmentType.CENTER },
   alignments: {
     defaultVerticalAlign: VerticalAlignTable.CENTER,
     defaultHorizontalAlign: AlignmentType.CENTER,
@@ -98,10 +99,7 @@ export const tablePlugin: (options?: ITablePluginProps) => IPlugin = options => 
 
       const { Table, TableRow, TableCell } = docx;
 
-      const { tableProps, firstRowProps, firstRowCellProps, rowProps, cellProps, alignments } = {
-        ...defaultTableOptions,
-        ...options,
-      };
+      const { tableProps, firstRowProps, firstRowCellProps, rowProps, cellProps, alignments } = mergeOptions(options, defaultTableOptions);
 
       const align = (node.align as (string | null)[] | null)?.map(a => {
         switch (a) {
@@ -157,7 +155,7 @@ export const tablePlugin: (options?: ITablePluginProps) => IPlugin = options => 
               ...cellProps,
               ...(rowIndex === 0 ? firstRowCellProps : {}),
               children: blockChildrenProcessor(cell, {
-                alignment: alignments.preferMdData
+                alignment: rowIndex === 0 && firstRowCellProps.alignment ? firstRowCellProps.alignment : alignments.preferMdData
                   ? align?.[cellIndex]
                   : alignments.defaultHorizontalAlign,
               }),

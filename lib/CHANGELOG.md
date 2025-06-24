@@ -1,5 +1,11 @@
 # @m2d/table
 
+## 0.1.2
+
+### Patch Changes
+
+- c153a02: refactor: enhance table plugin options merging and alignment handling - headers can now be aligned independent of rest of table
+
 ## 0.1.1
 
 ### Patch Changes
