@@ -43,9 +43,13 @@ if (isPatch) {
     );
   } catch {}
 } else {
-  require("./update-security-md")(`${newMajor}.${newMinor}`, `${oldMajor}.${oldMinor}`);
-  /** Create new release branch for every Major or Minor release */
-  execSync(`git checkout -b ${releaseBranch} && git push origin ${releaseBranch}`);
+  try {
+    require("./update-security-md")(`${newMajor}.${newMinor}`, `${oldMajor}.${oldMinor}`);
+    /** Create new release branch for every Major or Minor release */
+    execSync(`git checkout -b ${releaseBranch} && git push origin ${releaseBranch}`);
+  } catch (err){
+    console.error("Failed to create release branch", err);
+  }
 }
 
 const { visibility } = JSON.parse(execSync("gh repo view --json visibility").toString());
@@ -61,7 +65,7 @@ try {
 /** Create GitHub release */
 try {
   execSync(
-    `gh release create ${VERSION} --generate-notes --latest -n "$(sed '1,/^## /d;/^## /,$d' CHANGELOG.md)" --title "Release v${VERSION}"`,
+    `gh release create ${VERSION} --generate-notes --latest -n "$(sed '1,/^## /d;/^## /,$d' lib/CHANGELOG.md)" --title "Release v${VERSION}"`,
   );
 } catch {
   execSync(`gh release create ${VERSION} --generate-notes --latest --title "Release v${VERSION}"`);
