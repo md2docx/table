@@ -1,14 +1,20 @@
 # Markdown Syntax Showcase
 
+### Table with html
+
+| Left-aligned             | Center-aligned | Right-aligned |
+| :----------------------- | :------------: | ------------: |
+| Text 1 <br>- second line |     Text 2     |        Text 3 |
+
 ## 4. Tables
 
 Structuring data in tabular format.
 
-| Name  | Age | Location      |
-| ----- | --- | ------------- |
-| John  | 25  | _\__ New York |
-| Alice | 30  | San Francisco |
-| Bob   | 28  | London        |
+| Name  | Age | Location        |
+| ----- | --- | --------------- |
+| John  | 25  | \_\_\_ New York |
+| Alice | 30  | San Francisco   |
+| Bob   | 28  | London          |
 
 ### Table with md alignments
 
