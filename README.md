@@ -66,9 +66,14 @@ The `tablePlugin` accepts an optional configuration object:
 tablePlugin({
   tableProps: { ... },
   rowProps: { ... },
-  cellProps: { ... },
+  cellProps: { 
+    ... // CellProps
+    data: { bold: true, color: "#000000" } // Paragraph and Run styling options
+  },
   firstRowProps: { ... },
-  firstRowCellProps: { ... },
+  firstRowCellProps: { 
+    data: { bold: true, alignment: AlignmentType.CENTER } // Header cell styling
+  },
   alignments: {
     defaultHorizontalAlign: AlignmentType.CENTER,
     defaultVerticalAlign: VerticalAlign.CENTER,
@@ -87,8 +92,50 @@ All options override the following sensible defaults:
 | Border Style         | `SINGLE`, size `1`                     |
 | Cell Padding         | 2–4mm margins (top/bottom/left/right)  |
 | Header Row           | Bold with shaded background `#b79c2f`  |
+| Cell Styling         | Full docx.js paragraph & run options   |
 | Vertical Alignment   | `CENTER`                               |
 | Horizontal Alignment | Based on Markdown or `CENTER` fallback |
+
+### Advanced Cell Styling with `data` Property
+
+The `data` property provides comprehensive styling control using **docx.js** paragraph and text run options:
+
+#### Text Run Styling (`IRunOptions`)
+- `bold`, `italics`, `underline`, `strike`, `doubleStrike`
+- `color`, `size` (font size in half-points)
+- `font` (font family), `highlight`, `shading`
+- `superScript`, `subScript`, `smallCaps`, `allCaps`
+
+#### Paragraph Styling (`IParagraphOptions`)
+- `alignment` - text alignment (LEFT, CENTER, RIGHT, JUSTIFIED)
+- `spacing` - line spacing and paragraph spacing
+- `indent` - left, right, first line, hanging indents
+- `numbering`, `bullet`, `style`
+
+#### Code Block Support
+- `pre: true` - preserves spaces, newline for code blocks
+
+```ts
+tablePlugin({
+  cellProps: {
+    data: {
+      font: "Arial",
+      size: 20, // 10pt font
+      color: "#333333",
+      spacing: { after: 120 } // 6pt spacing after
+    }
+  },
+  firstRowCellProps: {
+    data: {
+      bold: true,
+      alignment: AlignmentType.CENTER,
+      color: "#ffffff",
+      size: 24, // 12pt font
+      font: "Calibri"
+    }
+  }
+});
+```
 
 ---
 

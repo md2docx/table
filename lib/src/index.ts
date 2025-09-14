@@ -17,7 +17,7 @@ import {
   PhrasingContent,
   EmptyNode,
 } from "@m2d/core";
-import { mergeOptions } from "@m2d/core/utils";
+import { mergeOptions, MutableParaOptions, MutableRunOptions } from "@m2d/core/utils";
 
 export type RowProps = Omit<ITableRowOptions, "children">;
 export type TableProps = Omit<ITableOptions, "rows">;
@@ -33,12 +33,42 @@ export interface ITableAlignments {
   preferMdData?: boolean;
 }
 
+/**
+ * Props for the first row cell component.
+ */
+export interface IFirstRowCellProps extends CellProps {
+  /**
+   * Text alignment for the cell.
+   *
+   * @deprecated Use the `data.alignment` property instead.
+   */
+  alignment?: (typeof AlignmentType)[keyof typeof AlignmentType];
+
+  /**
+   * Content and styling options for the cell.
+   *
+   * Combines mutable paragraph and run options,
+   * and optionally supports alignment.
+   */
+  data?: MutableParaOptions & MutableRunOptions;
+}
+
+export interface ICellProps extends CellProps {
+  /**
+   * Content and styling options for the cell.
+   *
+   * Combines mutable paragraph and run options,
+   * and optionally supports alignment.
+   */
+  data?: MutableParaOptions & MutableRunOptions;
+}
+
 interface IDefaultTablePluginProps {
   tableProps: TableProps;
   rowProps: RowProps;
-  cellProps: CellProps;
+  cellProps: ICellProps;
   firstRowProps: RowProps;
-  firstRowCellProps: CellProps & { alignment?: (typeof AlignmentType)[keyof typeof AlignmentType] };
+  firstRowCellProps: IFirstRowCellProps;
   alignments: ITableAlignments;
 }
 
@@ -102,8 +132,19 @@ export const tablePlugin: (options?: ITablePluginProps) => IPlugin = options => 
 
       const { Table, TableRow, TableCell } = docx;
 
-      const { tableProps, firstRowProps, firstRowCellProps, rowProps, cellProps, alignments } =
-        mergeOptions(options, defaultTableOptions);
+      const {
+        tableProps,
+        firstRowProps,
+        firstRowCellProps: { data, alignment, ...firstRowCellProps },
+        rowProps,
+        cellProps: { data: cellData, ...cellProps },
+        alignments,
+      } = mergeOptions(options, defaultTableOptions);
+
+      /**
+       * Prefer data.alignment if present - alignment is for backward compatibility and will be removed in next major release
+       */
+      const alignment1 = data?.alignment ?? alignment;
 
       const align = (node.align as (string | null)[] | null)?.map(a => {
         switch (a) {
@@ -160,11 +201,12 @@ export const tablePlugin: (options?: ITablePluginProps) => IPlugin = options => 
               ...(rowIndex === 0 ? firstRowCellProps : {}),
               children: blockChildrenProcessor(cell, {
                 alignment:
-                  rowIndex === 0 && firstRowCellProps.alignment
-                    ? firstRowCellProps.alignment
+                  rowIndex === 0 && alignment1
+                    ? alignment1
                     : alignments.preferMdData
                       ? align?.[cellIndex]
                       : alignments.defaultHorizontalAlign,
+                ...(rowIndex === 0 ? data : cellData),
               }),
             });
           }),
