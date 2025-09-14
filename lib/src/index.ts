@@ -38,7 +38,7 @@ interface IDefaultTablePluginProps {
   rowProps: RowProps;
   cellProps: CellProps;
   firstRowProps: RowProps;
-  firstRowCellProps: CellProps & {alignment?: (typeof AlignmentType)[keyof typeof AlignmentType]};
+  firstRowCellProps: CellProps & { alignment?: (typeof AlignmentType)[keyof typeof AlignmentType] };
   alignments: ITableAlignments;
 }
 
@@ -68,9 +68,12 @@ export const defaultTableOptions: IDefaultTablePluginProps = {
     },
   },
   rowProps: {},
-  cellProps: {width: {size: 100}},
+  cellProps: { width: { size: 100 } },
   firstRowProps: { tableHeader: true },
-  firstRowCellProps: { shading: { type: ShadingType.SOLID, fill: "b79c2f" }, alignment: AlignmentType.CENTER },
+  firstRowCellProps: {
+    shading: { type: ShadingType.SOLID, fill: "b79c2f" },
+    alignment: AlignmentType.CENTER,
+  },
   alignments: {
     defaultVerticalAlign: VerticalAlignTable.CENTER,
     defaultHorizontalAlign: AlignmentType.CENTER,
@@ -99,7 +102,8 @@ export const tablePlugin: (options?: ITablePluginProps) => IPlugin = options => 
 
       const { Table, TableRow, TableCell } = docx;
 
-      const { tableProps, firstRowProps, firstRowCellProps, rowProps, cellProps, alignments } = mergeOptions(options, defaultTableOptions);
+      const { tableProps, firstRowProps, firstRowCellProps, rowProps, cellProps, alignments } =
+        mergeOptions(options, defaultTableOptions);
 
       const align = (node.align as (string | null)[] | null)?.map(a => {
         switch (a) {
@@ -155,9 +159,12 @@ export const tablePlugin: (options?: ITablePluginProps) => IPlugin = options => 
               ...cellProps,
               ...(rowIndex === 0 ? firstRowCellProps : {}),
               children: blockChildrenProcessor(cell, {
-                alignment: rowIndex === 0 && firstRowCellProps.alignment ? firstRowCellProps.alignment : alignments.preferMdData
-                  ? align?.[cellIndex]
-                  : alignments.defaultHorizontalAlign,
+                alignment:
+                  rowIndex === 0 && firstRowCellProps.alignment
+                    ? firstRowCellProps.alignment
+                    : alignments.preferMdData
+                      ? align?.[cellIndex]
+                      : alignments.defaultHorizontalAlign,
               }),
             });
           }),

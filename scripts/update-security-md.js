@@ -14,6 +14,6 @@ module.exports = (newMajor_minor, oldMajor_minor) => {
       `git add SECURITY.md && git commit -m 'Update SECURITY.md [skip ci]' && git push origin ${process.env.BRANCH}`,
     );
   } catch (error) {
-    console.log("Error updating Security.md", error);
+    console.error("Failed to update SECURITY.md or it was already updated", error);
   }
 };
