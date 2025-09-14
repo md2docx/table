@@ -102,7 +102,10 @@ export const defaultTableOptions: IDefaultTablePluginProps = {
   firstRowProps: { tableHeader: true },
   firstRowCellProps: {
     shading: { type: ShadingType.SOLID, fill: "b79c2f" },
-    alignment: AlignmentType.CENTER,
+    data: {
+      alignment: AlignmentType.CENTER,
+      bold: true,
+    },
   },
   alignments: {
     defaultVerticalAlign: VerticalAlignTable.CENTER,
