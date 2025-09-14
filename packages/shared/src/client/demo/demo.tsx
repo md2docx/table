@@ -47,7 +47,7 @@ export function Demo() {
       {
         plugins: [
           htmlPlugin(),
-          tablePlugin(),
+          tablePlugin({ firstRowCellProps: { data: { bold: true } } }),
           listPlugin(),
           mathPlugin(),
           emojiPlugin(),
