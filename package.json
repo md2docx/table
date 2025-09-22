@@ -12,7 +12,6 @@
     "test": "turbo test",
     "typecheck": "turbo typecheck",
     "preinstall": "tsx scripts/update-pm.ts",
-    "doc": "tsx scripts/doc.ts && typedoc && cp _config.yml docs && tsx scripts/add-frontmatter.ts",
     "prepare": "husky",
     "release": "tsx ./scripts/publish.ts",
     "upgrade": "tsx ./scripts/upgrade.ts"

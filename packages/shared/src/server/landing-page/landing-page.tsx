@@ -43,8 +43,12 @@ export function LandingPage({ title, children }: LandingPageProps) {
       <h1 className={styles.title}>{title}</h1>
       <div className={[styles.center, styles.hero].join(" ")}>
         <TypeOut
-          componentAnimation={{ wrapper: "div", props: { style: { margin: "auto" } } }}
-          force>
+          componentAnimation={{
+            wrapper: "div",
+            props: { style: { margin: "auto" } },
+          }}
+          force
+        >
           <h2>Craft your next amazing library using</h2>
           <Logo href={`https://github.com/${owner}/${repo}`} />
           <br />
