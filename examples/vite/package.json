@@ -7,9 +7,7 @@
     "start": "vite preview",
     "clean": "rm -rf dist",
     "dev": "vite --host 0.0.0.0 --port 3001 --clearScreen false",
-    "typecheck": "tsc --noEmit",
-    "lint": "eslint src/",
-    "lint:fix": "eslint src/ --fix"
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@m2d/core": "^1.7.0",
