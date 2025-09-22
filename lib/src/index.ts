@@ -1,23 +1,27 @@
+import type {
+  EmptyNode,
+  IPlugin,
+  TableRow as MdTableRow,
+  Optional,
+  PhrasingContent,
+  RootContent,
+} from "@m2d/core";
 import {
-  BorderStyle,
-  ShadingType,
-  WidthType,
+  type MutableParaOptions,
+  type MutableRunOptions,
+  mergeOptions,
+} from "@m2d/core/utils";
+import {
   AlignmentType,
+  BorderStyle,
+  convertMillimetersToTwip,
   type ITableCellOptions,
   type ITableOptions,
   type ITableRowOptions,
+  ShadingType,
   VerticalAlignTable,
-  convertMillimetersToTwip,
+  WidthType,
 } from "docx";
-import {
-  TableRow as MdTableRow,
-  IPlugin,
-  Optional,
-  RootContent,
-  PhrasingContent,
-  EmptyNode,
-} from "@m2d/core";
-import { mergeOptions, MutableParaOptions, MutableRunOptions } from "@m2d/core/utils";
 
 export type RowProps = Omit<ITableRowOptions, "children">;
 export type TableProps = Omit<ITableOptions, "rows">;
@@ -128,7 +132,9 @@ const blockNodeTypesThatCanComeInCell = [
 /**
  * Plugin to convert Markdown tables (MDAST) to DOCX with support for rich formatting and seamless integration into mdast2docx.
  */
-export const tablePlugin: (options?: ITablePluginProps) => IPlugin = options => {
+export const tablePlugin: (options?: ITablePluginProps) => IPlugin = (
+  options,
+) => {
   return {
     block: (docx, node, _paraProps, blockChildrenProcessor) => {
       if (node.type !== "table") return [];
@@ -149,7 +155,7 @@ export const tablePlugin: (options?: ITablePluginProps) => IPlugin = options => 
        */
       const alignment1 = data?.alignment ?? alignment;
 
-      const align = (node.align as (string | null)[] | null)?.map(a => {
+      const align = (node.align as (string | null)[] | null)?.map((a) => {
         switch (a) {
           case "left":
             return docx.AlignmentType.LEFT;
