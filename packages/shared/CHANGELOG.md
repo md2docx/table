@@ -1,5 +1,13 @@
 # @repo/shared
 
+## 0.0.8
+
+### Patch Changes
+
+- Updated dependencies [f24a849]
+- Updated dependencies [ae744b5]
+  - @m2d/table@0.1.1
+
 ## 0.0.7
 
 ### Patch Changes

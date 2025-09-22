@@ -1,5 +1,18 @@
 # @m2d/table
 
+## 0.1.1
+
+### Patch Changes
+
+- f24a849: Remove deprecated alignment property from default firstRowCellProps
+
+  Replaced the deprecated `alignment` property with proper `data` object structure in default options. Header cells now correctly use `data.alignment` and `data.bold` as documented in README.
+
+- ae744b5: fix: prevent variable reuse in table cell traversal
+  - Fixes [#14](https://github.com/md2docx/core/issues/14)
+  - Root cause: typo + missing `const` in `for (...)` loop caused accidental reuse of function arg (`node`).
+  - Fix: added `const` keyword and renamed the inner loop variable to avoid scope collision.
+
 ## 0.1.0
 
 ### Minor Changes
