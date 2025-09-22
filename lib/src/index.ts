@@ -133,6 +133,14 @@ export const tablePlugin: (options?: ITablePluginProps) => IPlugin = options => 
     block: (docx, node, _paraProps, blockChildrenProcessor) => {
       if (node.type !== "table") return [];
 
+      // Check if we've already processed this node
+      if ((node as unknown as EmptyNode)._processed) {
+        return [];
+      }
+
+      // Mark as processed immediately to prevent reprocessing
+      (node as unknown as EmptyNode)._processed = true;
+
       const { Table, TableRow, TableCell } = docx;
 
       const {
@@ -217,8 +225,7 @@ export const tablePlugin: (options?: ITablePluginProps) => IPlugin = options => 
 
       const rows = node.children.map(createRow);
       (node as unknown as EmptyNode)._type = node.type;
-      // @ts-expect-error - Setting type to empty string to avoid re-processing the node.
-      node.type = "";
+
       return [new Table({ ...tableProps, rows })];
     },
   };
