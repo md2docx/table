@@ -165,8 +165,8 @@ export const tablePlugin: (options?: ITablePluginProps) => IPlugin = options => 
       const wrapInBlockNodeIfNeeded = (cell: { children: RootContent[] }) => {
         const children: RootContent[] = [];
         const tmp: PhrasingContent[] = [];
-        for (node of cell.children) {
-          if (blockNodeTypesThatCanComeInCell.includes(node.type)) {
+        for (const cellNode of cell.children) {
+          if (blockNodeTypesThatCanComeInCell.includes(cellNode.type)) {
             if (tmp.length > 0) {
               /* v8 ignore start - we will never reach here as html table cell is wrapped in fragment and markdown table can not contain block elements. Just want to put more thought before removing this */
               children.push({
@@ -176,9 +176,9 @@ export const tablePlugin: (options?: ITablePluginProps) => IPlugin = options => 
               tmp.length = 0;
             }
             /* v8 ignore stop */
-            children.push(node);
+            children.push(cellNode);
           } else {
-            tmp.push(node as PhrasingContent);
+            tmp.push(cellNode as PhrasingContent);
           }
         }
         if (tmp.length > 0) {
